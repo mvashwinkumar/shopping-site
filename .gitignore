@@ -1,3 +1,5 @@
 node_modules/
 npm-debug.log
 typings/
+app/**/*.js
+app/**/*js.map
