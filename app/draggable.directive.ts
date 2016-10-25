@@ -1,6 +1,5 @@
 import {Directive, EventEmitter, ElementRef, HostListener, OnInit} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
-import 'rxjs/add/operator/map';
 import 'rxjs/RX';
 
 @Directive({
@@ -32,41 +31,30 @@ export class DraggableDirective implements OnInit{
     this.element.nativeElement.style.position = 'relative';
     this.element.nativeElement.style.cursor = 'pointer';
 
-    this.mousedown.map(event => {
+    this.mousedrag = this.mousedown.map(event => {
       // return image offset value
+      let coords = this.element.nativeElement.getBoundingClientRect();
       return {
-        top : (<MouseEvent>event).clientY - this.element.nativeElement.getBoundingClientRect().top,
-        left : (<MouseEvent>event).clientX - this.element.nativeElement.getBoundingClientRect().left
+        top : coords.top,
+        left : coords.left
       }
     }).flatMap(imageOffset => {
-      this.mousemove.map(pos => ({
+      return this.mousemove.map(pos => ({
         top: (<MouseEvent>pos).clientY - imageOffset.top,
         left: (<MouseEvent>pos).clientX - imageOffset.left
       })).takeUntil(this.mouseup);
     })
 
-    this.mousedrag = this.mousedown.asObservable().map(event => {
-        (<MouseEvent>event).preventDefault();
-        return {
-          left: (<MouseEvent>event).clientX - this.element.nativeElement.getBoundingClientRect().left,
-          top:  (<MouseEvent>event).clientY - this.element.nativeElement.getBoundingClientRect().top
-        };
-      }).subscribe(imageOffset => this.mousemove.asObservable().map(event => ({
-        top:  (<MouseEvent>event).clientY - imageOffset.top,
-        left: (<MouseEvent>event).clientX - imageOffset.left
-      })).subscribe(this.mouseup));
-
   }
 
 
   ngOnInit() {
-    this.mousedrag.subscribe({
-      next: pos => {
+    this.mousedrag.subscribe(pos => {
         // Update position
         this.element.nativeElement.style.top  = pos.top  + 'px';
         this.element.nativeElement.style.left = pos.left + 'px';
       }
-    });
+    );
   }
 
 }
